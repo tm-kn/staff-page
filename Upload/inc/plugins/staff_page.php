@@ -259,6 +259,8 @@ function recache_staff_groups()
 
 	$query = $db->simple_select('staff_page_groups', '*', '1', array('order_by' => '`order`', 'order_dir' => 'asc'));
 
+	$groups = array();
+
 	if($db->num_rows($query))
 	{
 		while($row = $db->fetch_array($query))
@@ -267,7 +269,7 @@ function recache_staff_groups()
 		}
 	}
 
-	$cache->update('staff_page_groups',$groups);
+	$cache->update('staff_page_groups', $groups);
 }
 
 /**
