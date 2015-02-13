@@ -335,6 +335,7 @@ function staff_page_admin()
 			'description'	=>	$lang->add_group_description
 		);
 
+		// View groups and members
 		if (! $mybb->input['action'])
 		{
 			$page->output_header($lang->staff_page);
@@ -386,6 +387,7 @@ function staff_page_admin()
 			exit();
 		}
 
+		// Add group
 		if ($mybb->input['action'] == 'add_group')
 		{
 			$page->output_header($lang->staff_page.' - '.$lang->add_group);
@@ -421,7 +423,7 @@ function staff_page_admin()
 
 			$form = new Form('index.php?module=config-staff_page&amp;action=add_group', 'post', 'add');
 			$form_container = new FormContainer($lang->add_group);
-			$form_container->output_row($lang->name.'<em>*</em>', '', $form->generate_text_box('name', $mybb->input['name']));
+			$form_container->output_row($lang->name, '', $form->generate_text_box('name', $mybb->input['name']));
 			$form_container->output_row($lang->description, '', $form->generate_text_box('description', $mybb->input['description']));
 			$form_container->end();
 
@@ -435,6 +437,7 @@ function staff_page_admin()
 			exit();
 		}
 
+		// Add member
 		if ($mybb->input['action'] == 'add_member')
 		{
 			$page->output_header($lang->staff_page.' - '.$lang->add_member);
@@ -521,6 +524,76 @@ function staff_page_admin()
 
 			$page->output_footer();
 			exit();
+		}
+
+		// Delete group
+		if ($mybb->input['action'] == 'delete_group')
+		{
+			$query = $db->simple_select('staff_page_groups', '*', 'id=' . intval($mybb->input['uid']));
+			$group = $db->fetch_array($query);
+
+			if(!$group['id'])
+			{
+				flash_message($lang->group_not_exist, 'error');
+				admin_redirect('index.php?module=config-staff_page');
+			}
+
+			if ($mybb->input['no'])
+			{
+				admin_redirect('index.php?module=config-staff_page');
+			}
+
+			if ($mybb->request_method == 'post')
+			{
+				$db->delete_query('staff_page_groups', 'id = '.$group['id']);
+				$db->delete_query('staff_page_members', 'group_id = '.$group['id']);
+
+				recache_staff_groups();
+
+				log_admin_action($group['id']);
+
+				flash_message($lang->group_deleted, 'success');
+				admin_redirect('index.php?module=config-staff_page');
+			}
+			else
+			{
+				$page->output_confirm_action("index.php?module=config-staff_page&amp;action=delete_group&amp;uid={$group['id']}", $lang->sprintf($lang->do_you_want_to_delete_group, $group['name']));
+			}
+		}
+
+		// Delete member
+		if ($mybb->input['action'] == 'delete_member')
+		{
+			$query = $db->simple_select('staff_page_members', '*', 'id=' . intval($mybb->input['uid']));
+			$member = $db->fetch_array($query);
+			$user = get_user($member['user_id']);
+
+			if(!$member['id'])
+			{
+				flash_message($lang->user_not_exist, 'error');
+				admin_redirect('index.php?module=config-staff_page');
+			}
+
+			if ($mybb->input['no'])
+			{
+				admin_redirect('index.php?module=config-staff_page');
+			}
+
+			if ($mybb->request_method == 'post')
+			{
+				$db->delete_query('staff_page_members', 'id = '.$member['id']);
+
+				recache_staff_groups();
+
+				log_admin_action($member['id']);
+
+				flash_message($lang->member_deleted, 'success');
+				admin_redirect('index.php?module=config-staff_page');
+			}
+			else
+			{
+				$page->output_confirm_action("index.php?module=config-staff_page&amp;action=delete_member&amp;uid={$member['id']}", $lang->sprintf($lang->do_you_want_to_delete_member, $user['username']));
+			}
 		}
 	}
 }
