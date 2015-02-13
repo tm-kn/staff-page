@@ -137,6 +137,7 @@ function display_staff_page()
 
 					if($user['hideemail'] != 1)
 					{
+						$post['uid'] = $user['uid'];
 						eval("\$emailcode = \"".$templates->get("postbit_email")."\";");
 					}
 
@@ -441,7 +442,7 @@ function staff_page_admin()
 			$form = new Form('index.php?module=config-staff_page&amp;action=add_group', 'post', 'add');
 			$form_container = new FormContainer($lang->add_group);
 			$form_container->output_row($lang->name, '', $form->generate_text_box('name', $mybb->input['name']));
-			$form_container->output_row($lang->description, '', $form->generate_text_box('description', $mybb->input['description']));
+			$form_container->output_row($lang->description, '', $form->generate_text_area('description', $mybb->input['description']));
 			$form_container->end();
 
 			$buttons[] = $form->generate_submit_button($lang->save);
@@ -810,6 +811,19 @@ function staff_page_uninstall()
 	// Delete DB schema
 	$db->drop_table('staff_page_members');
 	$db->drop_table('staff_page_groups');
+
+	// Delete templates
+	$templates = array(
+		'staff_page',
+		'staff_page_group_row',
+		'staff_page_member_row',
+		'staff_page_no_groups',
+		'staff_page_no_members',
+		'staff_page_user_avatar'
+	);
+
+	// Delete templates
+	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
 }
 
 /**
@@ -819,6 +833,125 @@ function staff_page_uninstall()
 function staff_page_install()
 {
 	global $db;
+
+	// Install templates
+	$templates_array = array();
+
+
+	// staff_page
+	$template = '<html>
+<head>
+<title>{$mybb->settings[\'bbname\']} - {$lang->staff}</title>
+{$headerinclude}
+</head>
+<body>
+{$header}
+
+	{$groups_rows}
+
+{$footer}
+</body>
+</html>';
+
+	$templates_array[] = array(
+		'title'    => 'staff_page',
+		'template' => $db->escape_string($template),
+		'sid'      => '-1',
+		'version'  => '',
+		'dateline' => TIME_NOW
+	);
+
+
+	// staff_page_group_row
+	$template = '<table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder">
+    <tr>
+        <td class="thead" colspan="2">
+          <strong>{$group[\'name\']}</strong>
+          <br />
+          <div class="smalltext">
+           		{$group[\'description\']}
+          </div>
+        </td>
+    </tr>
+    {$members_rows}
+</table>
+<br />';
+	$templates_array[] = array(
+		'title'    => 'staff_page_group_row',
+		'template' => $db->escape_string($template),
+		'sid'      => '-1',
+		'version'  => '',
+		'dateline' => TIME_NOW
+	);
+
+
+	// staff_page_member_row
+	$template ='<tr>
+  <td class="{$bgcolor}" align="center" width="1%">
+    {$user[\'avatar\']}
+  </td>
+  <td class="{$bgcolor}">
+    <div class="largetext">{$user[\'profilelink\']}</div>
+    <div class="smalltext">{$description}</div>
+    <div class="postbit_buttons">{$emailcode}{$pmcode}</div>
+  </td>
+</tr>';
+
+	$templates_array[] = array(
+		'title'    => 'staff_page_member_row',
+		'template' => $db->escape_string($template),
+		'sid'      => '-1',
+		'version'  => '',
+		'dateline' => TIME_NOW
+	);
+
+
+	// staff_page_no_groups
+	$template = '<div class="red_alert">
+	{$lang->no_groups}
+</div>';
+
+	$templates_array[] = array(
+		'title'    => 'staff_page_no_groups',
+		'template' => $db->escape_string($template),
+		'sid'      => '-1',
+		'version'  => '',
+		'dateline' => TIME_NOW
+	);
+
+
+	// staff_page_no_members
+	$template = '<tr>
+	<td class="trow1">
+    	{$lang->no_members}
+	</td>
+</tr>';
+
+	$templates_array[] = array(
+		'title'    => 'staff_page_no_members',
+		'template' => $db->escape_string($template),
+		'sid'      => '-1',
+		'version'  => '',
+		'dateline' => TIME_NOW
+	);
+
+
+	// staff_page_user_avatar
+	$template = '<img src="{$useravatar[\'image\']}" alt="" {$useravatar[\'width_height\']} />';
+
+	$templates_array[] = array(
+		'title'    => 'staff_page_user_avatar',
+		'template' => $db->escape_string($template),
+		'sid'      => '-1',
+		'version'  => '',
+		'dateline' => TIME_NOW
+	);
+
+
+	foreach ($templates_array as $row)
+	{
+		$db->insert_query('templates', $row);
+	}
 
 	// Create DB schema
 	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_members (
@@ -848,9 +981,6 @@ function staff_page_deactivate()
 
 	// Delete cache
 	$db->delete_query('datacache', 'title = \'staff_page_groups\'');
-
-	// Delete templates
-	// $db->delete_query('templates', 'title IN ('.$templates_names.')');
 }
 
 /**
@@ -863,6 +993,4 @@ function staff_page_activate()
 
 	// Recache groups
 	recache_staff_groups();
-
-	// Install templates
 }
