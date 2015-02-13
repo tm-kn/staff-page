@@ -993,4 +993,6 @@ function staff_page_activate()
 
 	// Recache groups
 	recache_staff_groups();
+
+	change_admin_permission('config', 'staff_page', 0);
 }
