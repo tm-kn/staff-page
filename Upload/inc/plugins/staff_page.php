@@ -335,8 +335,6 @@ function staff_page_admin()
 			'description'	=>	$lang->add_group_description
 		);
 
-
-
 		if (! $mybb->input['action'])
 		{
 			$page->output_header($lang->staff_page);
@@ -388,6 +386,142 @@ function staff_page_admin()
 			exit();
 		}
 
+		if ($mybb->input['action'] == 'add_group')
+		{
+			$page->output_header($lang->staff_page.' - '.$lang->add_group);
+			$page->output_nav_tabs($sub_tabs, 'add_group');
+			$page->add_breadcrumb_item($lang->add_group);
+
+			if($mybb->request_method == 'post')
+			{
+				if(!trim($mybb->input['name']))
+				{
+					$errors[] = $lang->empty_name;
+				}
+
+				if(!$errors)
+				{
+					$insert_array = array(
+						'name'       => $db->escape_string($mybb->input['name']),
+						'description' => $db->escape_string($mybb->input['description'])
+					);
+
+					$db->insert_query('staff_page_groups', $insert_array);
+
+					recache_staff_groups();
+
+					admin_redirect('index.php?module=config-staff_page');
+				}
+			}
+
+			if($errors)
+			{
+				$page->output_inline_error($errors);
+			}
+
+			$form = new Form('index.php?module=config-staff_page&amp;action=add_group', 'post', 'add');
+			$form_container = new FormContainer($lang->add_group);
+			$form_container->output_row($lang->name.'<em>*</em>', '', $form->generate_text_box('name', $mybb->input['name']));
+			$form_container->output_row($lang->description, '', $form->generate_text_box('description', $mybb->input['description']));
+			$form_container->end();
+
+			$buttons[] = $form->generate_submit_button($lang->save);
+
+			$form->output_submit_wrapper($buttons);
+
+			$form->end();
+
+			$page->output_footer();
+			exit();
+		}
+
+		if ($mybb->input['action'] == 'add_member')
+		{
+			$page->output_header($lang->staff_page.' - '.$lang->add_member);
+			echo "<script type=\"text/javascript\" src=\"jscripts/users.js\"></script>";
+			$page->output_nav_tabs($sub_tabs, 'add_member');
+			$page->add_breadcrumb_item($lang->add_member);
+
+			$groups = get_staff_groups();
+
+			if($mybb->request_method == 'post')
+			{
+				// Check if chosen group exists
+				$i = 0;
+
+				foreach($groups as $group)
+				{
+					if($group['id'] == $mybb->input['group_id'])
+					{
+						$i++;
+						break;
+					}
+				}
+
+				if(!$i)
+				{
+					$errors[] = $lang->wrong_group;
+				}
+
+				// Check if chosen user exists
+				if($mybb->input['name'])
+				{
+					$query = $db->simple_select('users', 'uid', 'username = \''.$db->escape_string($mybb->input['name']).'\'');
+					$user = $db->fetch_array($query);
+				}
+				else
+				{
+					$user = array('uid' => 0);
+				}
+
+				if(!$user['uid'])
+				{
+					$errors[] = $lang->user_not_exist;
+				}
+
+				// Insert member
+				if(!$errors)
+				{
+					$insert_array = array(
+						'user_id'	=>	$user['uid'],
+						'group_id'	=>	intval($mybb->input['group_id'])
+					);
+
+					$db->insert_query('staff_page_members', $insert_array);
+
+					admin_redirect('index.php?module=config-staff_page');
+				}
+			}
+
+			if($errors)
+			{
+				$page->output_inline_error($errors);
+			}
+
+			// Prepare groups array to be a select list
+			$groups_select = array();
+
+			foreach($groups as $group)
+			{
+				$groups_select[$group['id']] = $group['name'];
+			}
+
+			// Generate a form
+			$form = new Form('index.php?module=config-staff_page&amp;action=add_member', 'post', 'add');
+			$form_container = new FormContainer($lang->add_member);
+			$form_container->output_row($lang->name, '', $form->generate_text_box('name', $mybb->input['name']));
+			$form_container->output_row($lang->group, '', $form->generate_select_box('group_id', $groups_select, $mybb->input['group_id'], array('id' => 'group_id')));
+			$form_container->end();
+
+			$buttons[] = $form->generate_submit_button($lang->save);
+
+			$form->output_submit_wrapper($buttons);
+
+			$form->end();
+
+			$page->output_footer();
+			exit();
+		}
 	}
 }
 
