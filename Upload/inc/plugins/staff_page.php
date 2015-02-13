@@ -9,9 +9,9 @@
  */
 
 // Disallow direct access to this file for security reasons
-if(!defined("IN_MYBB"))
+if(!defined('IN_MYBB'))
 {
-	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
+	die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
 }
 
 // Pre-load templates
@@ -27,83 +27,35 @@ if(my_strpos($_SERVER['PHP_SELF'], 'memberlist.php') && strtolower($_GET['action
 	$templatelist .= 'staff_page,staff_page_group_row,staff_page_member_row,staff_page_no_groups,staff_page_no_members,staff_page_user_avatar,postbit_pm,postbit_email';
 }
 
-// Hooks
-$plugins->add_hook("memberlist_start", "memberlist_hook");
+// Public hooks
+$plugins->add_hook('memberlist_start', 'staff_page_memberlist');
+
+// Admin CP hooks
+$plugins->add_hook('admin_config_menu', 'staff_page_admin_config_menu');
+$plugins->add_hook('admin_config_action_handler', 'staff_page_admin_config_action_handler');
+$plugins->add_hook('admin_config_permissions', 'staff_page_admin_config_permissions');
+$plugins->add_hook('admin_load', 'staff_page_admin');
 
 function staff_page_info()
 {
 	return array(
-		"name"			=> "Staff Page",
-		"description"	=> "A plugin adds a page, which displays a list of the staff members. The list content can be managed and description of users can be added.",
-		"website"		=> "http://github.com/mrnu/staff-page",
-		"author"		=> "mrnu",
-		"authorsite"	=> "http://github.com/mrnu",
-		"version"		=> "pre-alpha 0.1",
-		"guid" 			=> "",
-		"compatibility" => "18*"
+		'name'			=> 'Staff Page',
+		'description'	=> 'A plugin adds a page, which displays a list of the staff members. The list content can be managed and description of users can be added.',
+		'website'		=> 'http://github.com/mrnu/staff-page',
+		'author'		=> 'mrnu',
+		'authorsite'	=> 'http://github.com/mrnu',
+		'version'		=> 'pre-alpha 0.1',
+		'guid' 			=> '',
+		'compatibility' => '18*'
 	);
 }
-
-/**
- * ADDITIONAL PLUGIN INSTALL/UNINSTALL ROUTINES
- *
- * _install():
- *   Called whenever a plugin is installed by clicking the "Install" button in the plugin manager.
- *   If no install routine exists, the install button is not shown and it assumed any work will be
- *   performed in the _activate() routine.
- *
- * function hello_install()
- * {
- * }
- *
- * _is_installed():
- *   Called on the plugin management page to establish if a plugin is already installed or not.
- *   This should return TRUE if the plugin is installed (by checking tables, fields etc) or FALSE
- *   if the plugin is not installed.
- *
- * function hello_is_installed()
- * {
- *		global $db;
- *		if($db->table_exists("hello_world"))
- *  	{
- *  		return true;
- *		}
- *		return false;
- * }
- *
- * _uninstall():
- *    Called whenever a plugin is to be uninstalled. This should remove ALL traces of the plugin
- *    from the installation (tables etc). If it does not exist, uninstall button is not shown.
- *
- * function hello_uninstall()
- * {
- * }
- *
- * _activate():
- *    Called whenever a plugin is activated via the Admin CP. This should essentially make a plugin
- *    "visible" by adding templates/template changes, language changes etc.
- *
- * function hello_activate()
- * {
- * }
- *
- * _deactivate():
- *    Called whenever a plugin is deactivated. This should essentially "hide" the plugin from view
- *    by removing templates/template changes etc. It should not, however, remove any information
- *    such as tables, fields etc - that should be handled by an _uninstall routine. When a plugin is
- *    uninstalled, this routine will also be called before _uninstall() if the plugin is active.
- *
- * function hello_deactivate()
- * {
- * }
- */
 
 /**
  * Code hooked to memberlist_start.
  * Display generated staff page.
  *
  */
-function memberlist_hook()
+function staff_page_memberlist()
 {
 	// Only for testing purposes.
 	recache_staff_groups();
@@ -149,15 +101,15 @@ function display_staff_page()
 			if(count($members[$group['id']]))
 			{
 				// Initialize parser
-				require_once MYBB_ROOT."inc/class_parser.php";
+				require_once MYBB_ROOT.'inc/class_parser.php';
 				$parser = new postParser;
 				$parser_options = array(
-					"allow_html" => 0,
-					"allow_mycode" => 1,
-					"allow_smilies" => 1,
-					"allow_imgcode" => 1,
-					"allow_videocode" => 0,
-					"filter_badwords" => 0
+					'allow_html' => 0,
+					'allow_mycode' => 1,
+					'allow_smilies' => 1,
+					'allow_imgcode' => 1,
+					'allow_videocode' => 0,
+					'filter_badwords' => 0
 				);
 
 				$members_rows = '';
@@ -183,7 +135,7 @@ function display_staff_page()
 					// Show "Send PM" link
 					$pmcode = '';
 
-					if($user['receivepms'] != 0 && $mybb->settings['enablepms'] != 0 && my_strpos(",".$user['ignorelist'].",", ",".$mybb->user['uid'].",") === false)
+					if($user['receivepms'] != 0 && $mybb->settings['enablepms'] != 0 && my_strpos(','.$user['ignorelist'].',', ','.$mybb->user['uid'].',') === false)
 					{
 						$post['uid'] = $user['uid'];
 						eval("\$pmcode = \"".$templates->get("postbit_pm")."\";");
@@ -312,4 +264,208 @@ function sort_members_by_group_id($members_array)
 	}
 
 	return $new_array;
+}
+
+/**
+ *
+ */
+function staff_page_admin_config_menu($sub_menu)
+{
+	global $lang;
+
+	$lang->load('staff_page');
+
+	$sub_menu[] = array('id' => 'staff_page', 'title' => $lang->staff_page, 'link' => 'index.php?module=config-staff_page');
+
+	return $sub_menu;
+}
+
+/**
+ *
+ */
+function staff_page_admin_config_action_handler($actions)
+{
+	$actions['staff_page'] = array('active' => 'staff_page', 'file' => 'staff_page');
+
+	return $actions;
+}
+
+/**
+ *
+ */
+function staff_page_admin_config_permissions($admin_permissions)
+{
+	global $lang;
+
+	$lang->load('staff_page');
+
+	$admin_permissions['staff_page'] = $lang->staff_page_admin_permission;
+
+	return $admin_permissions;
+}
+
+/**
+*
+*/
+function staff_page_admin()
+{
+	global $db, $lang, $mybb, $page, $run_module, $action_file;
+
+	if($run_module == 'config' && $action_file == 'staff_page')
+	{
+		$lang->load('staff_page');
+
+		$page->add_breadcrumb_item($lang->staff_page, 'index.php?module=config-staff_page');
+
+		$sub_tabs['manage_staff_page'] = array(
+			'title'       => $lang->staff_page,
+			'link'        => 'index.php?module=config-staff_page',
+			'description' => $lang->staff_page_description
+		);
+
+		$sub_tabs['add_member'] = array(
+			'title' => $lang->add_member,
+			'link'  => 'index.php?module=config-staff_page&amp;action=add_member',
+			'description' => $lang->add_member_description
+		);
+
+		$sub_tabs['add_group'] = array(
+			'title' => $lang->add_group,
+			'link'  => 'index.php?module=config-staff_page&amp;action=add_group',
+			'description'	=>	$lang->add_group_description
+		);
+
+
+
+		if (! $mybb->input['action'])
+		{
+			$page->output_header($lang->staff_page);
+			$page->output_nav_tabs($sub_tabs, 'manage_staff_page');
+
+			$table = new Table;
+			$table->construct_header($lang->name);
+			$table->construct_header($lang->order);
+			$table->construct_header($lang->action, array('class' => "align_center", 'colspan' => 2));
+
+			$members = get_staff_members();
+			$members = sort_members_by_group_id($members);
+			$groups = get_staff_groups();
+
+			if(count($groups))
+			{
+				foreach($groups as $group)
+				{
+					$table->construct_cell('<div class="largetext"><strong>'.$group['name'].'</strong></div><div class="smalltext">'.$group['description'].'</div>');
+					$table->construct_cell($group['order']);
+					$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=edit_group&amp;uid={$group['id']}\">{$lang->edit}</a>");
+					$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=delete_group&amp;uid={$group['id']}\">{$lang->delete}</a>");
+					$table->construct_row();
+
+					if(count($members[$group['id']]))
+					{
+						foreach($members[$group['id']] as $member)
+						{
+							$user = get_user($member['user_id']);
+							$user['formatted_name'] = format_name($user['username'], $user['usergroup'], $user['displaygroup']);
+
+							$table->construct_cell('<div style="padding-left: 40px;" class="largetext">'.$user['formatted_name'].'</div><div class="smalltext" style="padding-left: 50px;">'.$member['description'].'</div>', array('colspan'  => 2));
+							$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=edit_member&amp;uid={$member['id']}\">{$lang->edit}</a>");
+							$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=delete_member&amp;uid={$member['id']}\">{$lang->delete}</a>");
+							$table->construct_row();
+						}
+					}
+				}
+			}
+			else
+			{
+				$table->construct_cell($lang->no_groups, array('colspan' => 4));
+				$table->construct_row();
+			}
+
+			$table->output($lang->staff_page);
+
+			$page->output_footer();
+			exit();
+		}
+
+	}
+}
+
+/**
+*
+*/
+function staff_page_is_installed()
+{
+	global $db;
+
+	if($db->table_exists('staff_page_groups'))
+ 	{
+  		return true;
+	}
+
+	return false;
+}
+
+/**
+*
+*/
+function staff_page_uninstall()
+{
+	global $db;
+
+	// Delete DB schema
+	$db->drop_table('staff_page_members');
+	$db->drop_table('staff_page_groups');
+}
+
+/**
+*
+*/
+function staff_page_install()
+{
+	global $db;
+
+	// Create DB schema
+	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_members (
+					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+					`user_id` int(11) DEFAULT NULL,
+					`group_id` int(11) DEFAULT NULL,
+					`description` text,
+					PRIMARY KEY (`id`)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
+
+	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_groups (
+					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+					`name` varchar(256) DEFAULT NULL,
+					`order` tinyint(127) NOT NULL DEFAULT '0',
+					`description` varchar(256) DEFAULT NULL,
+					PRIMARY KEY (`id`)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
+}
+
+/**
+*
+*/
+function staff_page_deactivate()
+{
+	global $db;
+
+	// Delete cache
+	$db->delete_query('datacache', 'title = \'staff_page_groups\'');
+
+	// Delete templates
+	// $db->delete_query('templates', 'title IN ('.$templates_names.')');
+}
+
+/**
+*
+*/
+function staff_page_activate()
+{
+	global $db;
+
+	// Recache groups
+	recache_staff_groups();
+
+	// Install templates
 }
