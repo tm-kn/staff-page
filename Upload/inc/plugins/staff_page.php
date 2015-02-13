@@ -392,7 +392,6 @@ function staff_page_admin()
 		{
 			$page->output_header($lang->staff_page.' - '.$lang->add_group);
 			$page->output_nav_tabs($sub_tabs, 'add_group');
-			$page->add_breadcrumb_item($lang->add_group);
 
 			if($mybb->request_method == 'post')
 			{
@@ -562,7 +561,7 @@ function staff_page_admin()
 		}
 
 		// Delete member
-		if ($mybb->input['action'] == 'delete_member')
+		if($mybb->input['action'] == 'delete_member')
 		{
 			$query = $db->simple_select('staff_page_members', '*', 'id=' . intval($mybb->input['uid']));
 			$member = $db->fetch_array($query);
@@ -594,6 +593,174 @@ function staff_page_admin()
 			{
 				$page->output_confirm_action("index.php?module=config-staff_page&amp;action=delete_member&amp;uid={$member['id']}", $lang->sprintf($lang->do_you_want_to_delete_member, $user['username']));
 			}
+		}
+
+		// Edit member
+		if ($mybb->input['action'] == 'edit_member')
+		{
+			$query = $db->simple_select('staff_page_members', '*', 'id=' . intval($mybb->input['uid']));
+			$member = $db->fetch_array($query);
+			$user = get_user($member['user_id']);
+
+			if(!$member['id'])
+			{
+				flash_message($lang->user_not_exist, 'error');
+				admin_redirect('index.php?module=config-staff_page');
+			}
+
+			$groups = get_staff_groups();
+
+			if($mybb->request_method == 'post')
+			{
+				// Check if chosen group exists
+				$i = 0;
+
+				foreach($groups as $group)
+				{
+					if($group['id'] == $mybb->input['group_id'])
+					{
+						$i++;
+						break;
+					}
+				}
+
+				if(!$i)
+				{
+					$errors[] = $lang->wrong_group;
+				}
+
+
+				if(!$errors)
+				{
+					$update_array = array(
+						'description'	=>	$db->escape_string($mybb->input['description']),
+						'group_id'	=>	intval($mybb->input['group_id'])
+					);
+
+					$db->update_query('staff_page_members', $update_array, 'id=' . $member['id']);
+
+					recache_staff_groups();
+
+					log_admin_action($member['id']);
+
+					flash_message($lang->member_saved, 'success');
+					admin_redirect('index.php?module=config-staff_page');
+				}
+			}
+
+			$page->add_breadcrumb_item($lang->edit_member);
+			$page->output_header($lang->staff_page.' - '.$lang->edit_member);
+
+
+			if ($errors)
+			{
+				$page->output_inline_error($errors);
+			}
+			else
+			{
+				$mybb->input = $member;
+			}
+
+			// Prepare groups array to be a select list
+			$groups_select = array();
+
+			foreach($groups as $group)
+			{
+				$groups_select[$group['id']] = $group['name'];
+			}
+
+			// Generate a form
+			$form = new Form('index.php?module=config-staff_page&amp;action=edit_member&amp;uid=' . $member['id'], 'post', 'edit');
+			echo $form->generate_hidden_field('uid', $member['id']);
+
+			$form_container = new FormContainer($lang->edit_member);
+			$form_container->output_row($lang->name, '', $user['username']);
+			$form_container->output_row($lang->description, '', $form->generate_text_area('description', $mybb->input['description']));
+			$form_container->output_row($lang->group, '', $form->generate_select_box('group_id', $groups_select, $mybb->input['group_id'], array('id' => 'group_id')));
+			$form_container->end();
+
+			$buttons[] = $form->generate_submit_button($lang->save);
+			$buttons[] = $form->generate_reset_button($lang->reset);
+
+			$form->output_submit_wrapper($buttons);
+
+			$form->end();
+
+			$page->output_footer();
+			exit();
+		}
+
+		// Edit group
+		if ($mybb->input['action'] == 'edit_group')
+		{
+			$query = $db->simple_select('staff_page_groups', '*', 'id=' . intval($mybb->input['uid']));
+			$group = $db->fetch_array($query);
+
+			if(!$group['id'])
+			{
+				flash_message($lang->group_not_exist, 'error');
+				admin_redirect('index.php?module=config-staff_page');
+			}
+
+			if($mybb->request_method == 'post')
+			{
+				if(!$mybb->input['name'])
+				{
+					$error[] = $lang->empty_name;
+				}
+
+				if(!$errors)
+				{
+					$update_array = array(
+						'description'	=>	$db->escape_string($mybb->input['description']),
+						'order'	=>	intval($mybb->input['orderr']),
+						'name'	=>	$db->escape_string($mybb->input['name'])
+					);
+
+					$db->update_query('staff_page_groups', $update_array, 'id=' . $group['id']);
+
+					recache_staff_groups();
+
+					log_admin_action($group['id']);
+
+					flash_message($lang->group_saved, 'success');
+					admin_redirect('index.php?module=config-staff_page');
+				}
+			}
+
+			$page->add_breadcrumb_item($lang->edit_group);
+			$page->output_header($lang->staff_page.' - '.$lang->edit_group);
+
+
+			if ($errors)
+			{
+				$page->output_inline_error($errors);
+			}
+			else
+			{
+				$mybb->input = $group;
+				$mybb->input['orderr'] = $group['order'];
+			}
+
+			// Generate a form
+			$form = new Form('index.php?module=config-staff_page&amp;action=edit_group&amp;uid=' . $group['id'], 'post', 'edit');
+			echo $form->generate_hidden_field('uid', $group['id']);
+
+			$form_container = new FormContainer($lang->edit_group);
+			$form_container->output_row($lang->name, '', $form->generate_text_box('name', $mybb->input['name']));
+			$form_container->output_row($lang->description, '', $form->generate_text_area('description', $mybb->input['description']));
+			$form_container->output_row($lang->order, '', $form->generate_text_box('orderr', $mybb->input['orderr']));
+			$form_container->end();
+
+			$buttons[] = $form->generate_submit_button($lang->save);
+			$buttons[] = $form->generate_reset_button($lang->reset);
+
+			$form->output_submit_wrapper($buttons);
+
+			$form->end();
+
+			$page->output_footer();
+			exit();
 		}
 	}
 }
