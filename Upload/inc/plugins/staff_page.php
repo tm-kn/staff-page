@@ -1,6 +1,6 @@
 <?php
 /**
- * Staff Page pre-alpha 0.1
+ * Staff Page v0.2 alpha
  * Author: mrnu <mrnuu@icloud.com>
  *
  * Website: https://github.com/mrnu
@@ -44,7 +44,7 @@ function staff_page_info()
 		'website'		=> 'http://github.com/mrnu/staff-page',
 		'author'		=> 'mrnu',
 		'authorsite'	=> 'http://github.com/mrnu',
-		'version'		=> 'pre-alpha 0.1',
+		'version'		=> '0.2 alpha',
 		'guid' 			=> '',
 		'compatibility' => '18*'
 	);
@@ -459,11 +459,16 @@ function staff_page_admin()
 		if ($mybb->input['action'] == 'add_member')
 		{
 			$page->output_header($lang->staff_page.' - '.$lang->add_member);
-			echo "<script type=\"text/javascript\" src=\"jscripts/users.js\"></script>";
 			$page->output_nav_tabs($sub_tabs, 'add_member');
 			$page->add_breadcrumb_item($lang->add_member);
 
 			$groups = get_staff_groups();
+
+			if(!count($groups))
+			{
+				flash_message($lang->add_group_first, 'error');
+				admin_redirect('index.php?module=config-staff_page');
+			}
 
 			if($mybb->request_method == 'post')
 			{
