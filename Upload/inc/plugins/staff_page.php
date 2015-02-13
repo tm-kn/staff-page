@@ -65,9 +65,12 @@ function staff_page_memberlist()
 	// Check if the staff page were requested - memberlist.php?action=staff.
 	if(strtolower($mybb->input['action']) == 'staff')
 	{
+		// Load language
 		$lang->load('staff_page');
 
 		add_breadcrumb($lang->staff, 'memberlist.php?action=staff');
+
+		// Get the template and output the page
 		$staff_page_template = display_staff_page();
 		output_page($staff_page_template);
 		exit();
@@ -85,12 +88,16 @@ function display_staff_page()
 	global $db, $lang, $theme, $templates, $plugins, $mybb, $cache;
 	global $header, $headerinclude, $footer;
 
+	// Get staff members and sort them by groups
 	$members = get_staff_members($mybb->input['group_id'] ? $mybb->input['group_id'] : 0);
 	$members = sort_members_by_group_id($members);
+
+	// Get groups
 	$groups = get_staff_groups();
 
 	if(count($groups))
 	{
+		// Output all groups
 		$groups_rows = '';
 
 		foreach($groups as $group)
@@ -100,7 +107,7 @@ function display_staff_page()
 
 			if(count($members[$group['id']]))
 			{
-				// Initialize parser
+				// Initialize parser to handle MyCode inside members' description
 				require_once MYBB_ROOT.'inc/class_parser.php';
 				$parser = new postParser;
 				$parser_options = array(
@@ -112,6 +119,7 @@ function display_staff_page()
 					'filter_badwords' => 0
 				);
 
+				// Output members of group
 				$members_rows = '';
 
 				foreach($members[$group['id']] as $member)
@@ -157,6 +165,7 @@ function display_staff_page()
 
 				}
 			}
+			// No members
 			else
 			{
 				eval('$members_rows = "'.$templates->get('staff_page_no_members').'";');
@@ -165,6 +174,7 @@ function display_staff_page()
 			eval('$groups_rows .= "'.$templates->get('staff_page_group_row').'";');
 		}
 	}
+	// No groups
 	else
 	{
 		eval('$groups_rows .= "'.$templates->get('staff_page_no_groups').'";');
@@ -267,6 +277,8 @@ function sort_members_by_group_id($members_array)
 }
 
 /**
+ * Code hooked to page_admin_config_menu.
+ * Adds link to the staff page configuration in the config menu.
  *
  */
 function staff_page_admin_config_menu($sub_menu)
@@ -281,6 +293,8 @@ function staff_page_admin_config_menu($sub_menu)
 }
 
 /**
+ * Code hooked to page_admin_config_action_handler.
+ * Adds action for the staff page configuration
  *
  */
 function staff_page_admin_config_action_handler($actions)
@@ -291,6 +305,8 @@ function staff_page_admin_config_action_handler($actions)
 }
 
 /**
+ * Code hooked to page_admin_config_permissions.
+ * Add permission to see the staff page configuration.
  *
  */
 function staff_page_admin_config_permissions($admin_permissions)
@@ -305,6 +321,8 @@ function staff_page_admin_config_permissions($admin_permissions)
 }
 
 /**
+* Code hooked to admin_load.
+* The code of our configuration panel.
 *
 */
 function staff_page_admin()
@@ -766,8 +784,9 @@ function staff_page_admin()
 }
 
 /**
-*
-*/
+ * Checks if plugin is installed.
+ *
+ */
 function staff_page_is_installed()
 {
 	global $db;
@@ -781,8 +800,9 @@ function staff_page_is_installed()
 }
 
 /**
-*
-*/
+ * That's what happens when the plugin is uninstalled.
+ *
+ */
 function staff_page_uninstall()
 {
 	global $db;
@@ -793,8 +813,9 @@ function staff_page_uninstall()
 }
 
 /**
-*
-*/
+ * Installation of the plugin.
+ *
+ */
 function staff_page_install()
 {
 	global $db;
@@ -818,8 +839,9 @@ function staff_page_install()
 }
 
 /**
-*
-*/
+ * Deactivation of plugin.
+ *
+ */
 function staff_page_deactivate()
 {
 	global $db;
@@ -832,8 +854,9 @@ function staff_page_deactivate()
 }
 
 /**
-*
-*/
+ * Activation of plugin.
+ *
+ */
 function staff_page_activate()
 {
 	global $db;
