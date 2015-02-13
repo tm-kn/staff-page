@@ -28,4 +28,11 @@ $l['save'] = 'Save';
 
 $l['empty_name'] = 'You must provide the name.';
 $l['wrong_group'] = 'Choose group again.';
-$l['user_not_exist'] = 'User doesn\'t exist.';
+
+$l['group_deleted'] = 'Group has been deleted.';
+$l['group_not_exist'] = 'Group does not exist.';
+$l['do_you_want_to_delete_group'] = 'Do you want to delete "{1}"?';
+
+$l['user_not_exist'] = 'User does not exist.';
+$l['do_you_want_to_delete_member'] = 'Do you want to member "{1}"?';
+$l['member_deleted'] = 'Member has been deleted.';
