@@ -40,3 +40,4 @@ $l['user_not_exist'] = 'User does not exist.';
 $l['do_you_want_to_delete_member'] = 'Do you want to member "{1}"?';
 $l['member_deleted'] = 'Member has been deleted.';
 $l['member_saved'] = 'Member has been updated.';
+$l['add_group_first'] = 'First you need to add a group.';
