@@ -223,7 +223,7 @@ function get_staff_members($group_id = 0)
 
 	$members = array();
 
-	$query = $db->simple_select('staff_page_members', '*', $group_id ? ('group_id = ' . intval($group_id)) : '1' );
+	$query = $db->simple_select('staff_page_members', '*', $group_id ? ('group_id = ' . intval($group_id)) : '1', array('order_by'	=>	'user_id', 'order_dir'	=>	'ASC'));
 
 	if($db->num_rows($query))
 	{
