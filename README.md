@@ -14,8 +14,8 @@ Page is available under *memberlist.php?action=staff* URL.
 1. Firstly you must set administrator permissions to gain access to the plugin configuration. The permission can be found in the configuration section.
 2. Now you can access plugin's configuration page. To do so, go to "Configuration" tab of ACP and choose "Staff Page" from the sidebar on the left. There you manage your staff page.
 
-### Hiding staff page from users
-You can disallow users from accessing the staff page by setting it in the group permissions in ACP.
+### Hiding the staff page from users
+You can disallow users from accessing the staff page by setting it in the groups permissions in ACP.
 
 ### Other settings
 In the board settings the plugin gives administrators possibility to set avatar size displayed on the staff page and the redirection from showteam.php can be turned off.
