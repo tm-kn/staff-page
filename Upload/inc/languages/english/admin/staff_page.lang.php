@@ -47,3 +47,5 @@ $l['avatar_size'] = 'Avatar size';
 $l['avatar_size_description'] = 'What size of avatar will be displayed on the staff page. Format: widthxheight, Example: 100x100';
 $l['enable_showteam_redirection'] = 'Redirect showteam.php to the staff page.';
 $l['enable_showteam_redirection_description'] = 'You can switch off or switch on the redirection from showteam.php here.';
+
+$l['can_see_staff_page'] = 'Can see Staff Page?';

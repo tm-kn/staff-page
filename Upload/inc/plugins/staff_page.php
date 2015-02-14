@@ -1,10 +1,10 @@
 <?php
 /**
- * Staff Page v0.2 alpha
+ * Staff Page v0.3 (alpha)
  * Author: mrnu <mrnuu@icloud.com>
  *
  * Website: https://github.com/mrnu
- * License: http://opensource.org/licenses/MIT
+ * License: GPL Version 3, 29 June 2007
  *
  */
 
@@ -36,6 +36,8 @@ $plugins->add_hook('admin_config_menu', 'staff_page_admin_config_menu');
 $plugins->add_hook('admin_config_action_handler', 'staff_page_admin_config_action_handler');
 $plugins->add_hook('admin_config_permissions', 'staff_page_admin_config_permissions');
 $plugins->add_hook('admin_load', 'staff_page_admin');
+$plugins->add_hook('admin_formcontainer_end', 'staff_page_admin_formcontainer_end');
+$plugins->add_hook('admin_user_groups_edit_commit', 'staff_page_admin_user_groups_edit_commit');
 
 function staff_page_info()
 {
@@ -45,7 +47,7 @@ function staff_page_info()
 		'website'		=> 'http://github.com/mrnu/staff-page',
 		'author'		=> 'mrnu',
 		'authorsite'	=> 'http://github.com/mrnu',
-		'version'		=> '0.2 alpha',
+		'version'		=> '0.3',
 		'guid' 			=> '',
 		'compatibility' => '18*'
 	);
@@ -66,6 +68,11 @@ function staff_page_memberlist()
 	// Check if the staff page were requested - memberlist.php?action=staff.
 	if(strtolower($mybb->input['action']) == 'staff')
 	{
+		if(!$mybb->usergroup['canseestaffpage'])
+		{
+			error_no_permission();
+		}
+
 		// Load language
 		$lang->load('staff_page');
 
@@ -336,6 +343,39 @@ function staff_page_admin_config_permissions($admin_permissions)
 	$admin_permissions['staff_page'] = $lang->staff_page_admin_permission;
 
 	return $admin_permissions;
+}
+
+
+
+
+/**
+* Code hooked to page_admin_config_permissions.
+* Add group permissions which allows groups to see the staff page.
+*
+*/
+function staff_page_admin_formcontainer_end()
+{
+	global $run_module, $form_container, $lang, $form, $mybb;
+
+	if($run_module == "user" && !empty($form_container->_title) && !empty($lang->users_permissions) && $form_container->_title == $lang->users_permissions) {
+
+		$options = array();
+		$options[] = $form->generate_check_box('canseestaffpage', 1, $lang->can_see_staff_page, array('checked' => $mybb->input['canseestaffpage']));
+
+		$form_container->output_row($lang->staff_page, '', '<div class="group_settings_bit">'.implode('</div><div class="group_settings_bit">', $options).'</div>');
+	}
+}
+
+/**
+* Code hooked to admin_user_groups_edit_commit
+* Update group permissions which allows groups to see the staff page.
+*
+*/
+function staff_page_admin_user_groups_edit_commit($admin_permissions)
+{
+	global $updated_group, $mybb;
+
+	$updated_group['canseestaffpage'] = $mybb->input['canseestaffpage'];
 }
 
 /**
@@ -848,12 +888,24 @@ function staff_page_uninstall()
 		'staff_page_user_avatar'
 	);
 
+	// Remove group permissions
+	if($db->field_exists('canseestaffpage', 'usergroups')) {
+		$db->drop_column("usergroups", "canseestaffpage");
+	}
+
 	// Delete templates
 	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
 
 	// Delete DB schema
-	$db->drop_table('staff_page_members');
-	$db->drop_table('staff_page_groups');
+	if($db->table_exists('staff_page_groups'))
+	{
+		$db->drop_table('staff_page_groups');
+	}
+
+	if($db->table_exists('staff_page_groups'))
+	{
+		$db->drop_table('staff_page_groups');
+	}
 }
 
 /**
@@ -908,6 +960,11 @@ function staff_page_install()
 
 	// Rebuild settings
 	rebuild_settings();
+
+	// Add group permissions
+	if(!$db->field_exists('canseestaffpage', 'usergroups')) {
+		$db->add_column('usergroups', 'canseestaffpage', 'tinyint(1) NOT NULL default \'1\'');
+	}
 
 	// Install templates
 	$templates_array = array();
