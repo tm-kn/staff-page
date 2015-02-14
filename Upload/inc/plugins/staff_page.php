@@ -830,9 +830,13 @@ function staff_page_uninstall()
 {
 	global $db;
 
-	// Delete DB schema
-	$db->drop_table('staff_page_members');
-	$db->drop_table('staff_page_groups');
+	// Remove settings
+	$db->delete_query('settings', "name IN ('staff_page_maxavatarsize', 'staff_page_showteam_redirect')");
+	$db->delete_query('settinggroups', "name = 'staff_page'");
+	rebuild_settings();
+
+	// Delete admin permissions
+	change_admin_permission('config', 'staff_page', 0);
 
 	// Delete templates
 	$templates = array(
@@ -846,6 +850,10 @@ function staff_page_uninstall()
 
 	// Delete templates
 	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
+
+	// Delete DB schema
+	$db->drop_table('staff_page_members');
+	$db->drop_table('staff_page_groups');
 }
 
 /**
@@ -854,11 +862,52 @@ function staff_page_uninstall()
  */
 function staff_page_install()
 {
-	global $db;
+	global $db, $lang;
+
+	// Load language file for settings
+	$lang->load('staff_page');
 
 	// Add settings
+	$setting_group = array(
+		'name' => 'staff_page',
+		'title' => $lang->staff_page_settings,
+		'description' => '',
+		'disporder' => 99,
+		'isdefault' => 0
+	);
 
-	// staff_page_maxavatarsize, staff_page_showteam_redirect
+	$gid = $db->insert_query("settinggroups", $setting_group);
+
+	$setting_array = array(
+
+		'staff_page_maxavatarsize' => array(
+			'title' => $lang->avatar_size,
+			'description' => $lang->avatar_size_description,
+			'optionscode' => 'text',
+			'value' => '100x100',
+			'disporder' => 1
+		),
+
+		'staff_page_showteam_redirect' => array(
+			'title' => $lang->enable_showteam_redirection,
+			'description' => $lang->enable_showteam_redirection_description,
+			'optionscode' => 'yesno',
+			'value' => 1,
+			'disporder' => 2
+		)
+
+	);
+
+	foreach($setting_array as $name => $setting)
+	{
+		$setting['name'] = $name;
+		$setting['gid'] = $gid;
+
+		$db->insert_query('settings', $setting);
+	}
+
+	// Rebuild settings
+	rebuild_settings();
 
 	// Install templates
 	$templates_array = array();
@@ -1019,6 +1068,4 @@ function staff_page_activate()
 
 	// Recache groups
 	recache_staff_groups();
-
-	change_admin_permission('config', 'staff_page', 0);
 }

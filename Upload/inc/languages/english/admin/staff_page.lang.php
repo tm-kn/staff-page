@@ -41,3 +41,9 @@ $l['do_you_want_to_delete_member'] = 'Do you want to member "{1}"?';
 $l['member_deleted'] = 'Member has been deleted.';
 $l['member_saved'] = 'Member has been updated.';
 $l['add_group_first'] = 'First you need to add a group.';
+
+$l['staff_page_settings'] = 'Staff Page plugin settings';
+$l['avatar_size'] = 'Avatar size';
+$l['avatar_size_description'] = 'What size of avatar will be displayed on the staff page. Format: widthxheight, Example: 100x100';
+$l['enable_showteam_redirection'] = 'Redirect showteam.php to the staff page.';
+$l['enable_showteam_redirection_description'] = 'You can switch off or switch on the redirection from showteam.php here.';
