@@ -29,6 +29,7 @@ if(my_strpos($_SERVER['PHP_SELF'], 'memberlist.php') && strtolower($_GET['action
 
 // Public hooks
 $plugins->add_hook('memberlist_start', 'staff_page_memberlist');
+$plugins->add_hook('showteam_start', 'staff_page_showteam');
 
 // Admin CP hooks
 $plugins->add_hook('admin_config_menu', 'staff_page_admin_config_menu');
@@ -73,6 +74,22 @@ function staff_page_memberlist()
 		// Get the template and output the page
 		$staff_page_template = display_staff_page();
 		output_page($staff_page_template);
+		exit();
+	}
+}
+
+/**
+* Code hooked to showteam_satrt.
+* Redirect to the custom staff page.
+*
+*/
+function staff_page_showteam()
+{
+	global $mybb;
+
+	if($mybb->settings['staff_page_showteam_redirect'])
+	{
+		header('Location: memberlist.php?action=staff');
 		exit();
 	}
 }
@@ -838,6 +855,10 @@ function staff_page_uninstall()
 function staff_page_install()
 {
 	global $db;
+
+	// Add settings
+
+	// staff_page_maxavatarsize, staff_page_showteam_redirect
 
 	// Install templates
 	$templates_array = array();
