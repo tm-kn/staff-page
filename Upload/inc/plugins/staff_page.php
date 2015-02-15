@@ -1,6 +1,6 @@
 <?php
 /**
- * Staff Page v0.3 (alpha)
+ * Staff Page v0.3.1 (alpha)
  * Author: mrnu <mrnuu@icloud.com>
  *
  * Website: https://github.com/mrnu
@@ -15,10 +15,10 @@ if(!defined('IN_MYBB'))
 }
 
 // Pre-load templates
-if(my_strpos($_SERVER['PHP_SELF'], 'memberlist.php') && strtolower($_GET['action']) == 'staff')
-{
-	global $templatelist;
+global $mybb, $templatelist;
 
+if(THIS_SCRIPT == 'memberlist.php' && $mybb->input['action'] == 'staff')
+{
 	if(isset($templatelist))
 	{
 		$templatelist .= ',';
@@ -47,8 +47,7 @@ function staff_page_info()
 		'website'		=> 'http://github.com/mrnu/staff-page',
 		'author'		=> 'mrnu',
 		'authorsite'	=> 'http://github.com/mrnu',
-		'version'		=> '0.3',
-		'guid' 			=> '',
+		'version'		=> '0.3.1',
 		'compatibility' => '18*'
 	);
 }
@@ -60,13 +59,10 @@ function staff_page_info()
  */
 function staff_page_memberlist()
 {
-	// Only for testing purposes.
-	recache_staff_groups();
-
 	global $mybb, $lang;
 
 	// Check if the staff page were requested - memberlist.php?action=staff.
-	if(strtolower($mybb->input['action']) == 'staff')
+	if($mybb->input['action'] == 'staff')
 	{
 		if(!$mybb->usergroup['canseestaffpage'])
 		{
@@ -223,7 +219,16 @@ function get_staff_members($group_id = 0)
 
 	$members = array();
 
-	$query = $db->simple_select('staff_page_members', '*', $group_id ? ('group_id = ' . intval($group_id)) : '1', array('order_by'	=>	'user_id', 'order_dir'	=>	'ASC'));
+	if($group_id)
+	{
+		$where_clause = 'group_id = ' . intval($group_id);
+	}
+	else
+	{
+		$where_clause = '1';
+	}
+
+	$query = $db->simple_select('staff_page_members', '*', $where_clause, array('order_by'	=>	'user_id', 'order_dir'	=>	'ASC'));
 
 	if($db->num_rows($query))
 	{
@@ -412,7 +417,7 @@ function staff_page_admin()
 		);
 
 		// View groups and members
-		if (! $mybb->input['action'])
+		if(!$mybb->input['action'])
 		{
 			$page->output_header($lang->staff_page);
 			$page->output_nav_tabs($sub_tabs, 'manage_staff_page');
@@ -464,7 +469,7 @@ function staff_page_admin()
 		}
 
 		// Add group
-		if ($mybb->input['action'] == 'add_group')
+		if($mybb->input['action'] == 'add_group')
 		{
 			$page->output_header($lang->staff_page.' - '.$lang->add_group);
 			$page->output_nav_tabs($sub_tabs, 'add_group');
@@ -513,7 +518,7 @@ function staff_page_admin()
 		}
 
 		// Add member
-		if ($mybb->input['action'] == 'add_member')
+		if($mybb->input['action'] == 'add_member')
 		{
 			$page->output_header($lang->staff_page.' - '.$lang->add_member);
 			$page->output_nav_tabs($sub_tabs, 'add_member');
@@ -607,7 +612,7 @@ function staff_page_admin()
 		}
 
 		// Delete group
-		if ($mybb->input['action'] == 'delete_group')
+		if($mybb->input['action'] == 'delete_group')
 		{
 			$query = $db->simple_select('staff_page_groups', '*', 'id=' . intval($mybb->input['uid']));
 			$group = $db->fetch_array($query);
@@ -618,12 +623,12 @@ function staff_page_admin()
 				admin_redirect('index.php?module=config-staff_page');
 			}
 
-			if ($mybb->input['no'])
+			if($mybb->input['no'])
 			{
 				admin_redirect('index.php?module=config-staff_page');
 			}
 
-			if ($mybb->request_method == 'post')
+			if($mybb->request_method == 'post')
 			{
 				$db->delete_query('staff_page_groups', 'id = '.$group['id']);
 				$db->delete_query('staff_page_members', 'group_id = '.$group['id']);
@@ -654,12 +659,12 @@ function staff_page_admin()
 				admin_redirect('index.php?module=config-staff_page');
 			}
 
-			if ($mybb->input['no'])
+			if($mybb->input['no'])
 			{
 				admin_redirect('index.php?module=config-staff_page');
 			}
 
-			if ($mybb->request_method == 'post')
+			if($mybb->request_method == 'post')
 			{
 				$db->delete_query('staff_page_members', 'id = '.$member['id']);
 
@@ -677,7 +682,7 @@ function staff_page_admin()
 		}
 
 		// Edit member
-		if ($mybb->input['action'] == 'edit_member')
+		if($mybb->input['action'] == 'edit_member')
 		{
 			$query = $db->simple_select('staff_page_members', '*', 'id=' . intval($mybb->input['uid']));
 			$member = $db->fetch_array($query);
@@ -733,7 +738,7 @@ function staff_page_admin()
 			$page->output_header($lang->staff_page.' - '.$lang->edit_member);
 
 
-			if ($errors)
+			if($errors)
 			{
 				$page->output_inline_error($errors);
 			}
@@ -772,7 +777,7 @@ function staff_page_admin()
 		}
 
 		// Edit group
-		if ($mybb->input['action'] == 'edit_group')
+		if($mybb->input['action'] == 'edit_group')
 		{
 			$query = $db->simple_select('staff_page_groups', '*', 'id=' . intval($mybb->input['uid']));
 			$group = $db->fetch_array($query);
@@ -813,7 +818,7 @@ function staff_page_admin()
 			$page->output_header($lang->staff_page.' - '.$lang->edit_group);
 
 
-			if ($errors)
+			if($errors)
 			{
 				$page->output_inline_error($errors);
 			}
