@@ -48,7 +48,6 @@ function staff_page_info()
 		'author'		=> 'mrnu',
 		'authorsite'	=> 'http://github.com/mrnu',
 		'version'		=> '0.3.1',
-		'guid' 			=> '',
 		'compatibility' => '18*'
 	);
 }
