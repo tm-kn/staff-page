@@ -914,7 +914,7 @@ function staff_page_uninstall()
  */
 function staff_page_install()
 {
-	global $db, $lang;
+	global $db, $lang, $cache;
 
 	// Load language file for settings
 	$lang->load('staff_page');
@@ -965,6 +965,9 @@ function staff_page_install()
 	if(!$db->field_exists('canseestaffpage', 'usergroups')) {
 		$db->add_column('usergroups', 'canseestaffpage', 'tinyint(1) NOT NULL default \'1\'');
 	}
+
+	// Update the caches
+	$cache->update_usergroups();
 
 	// Install templates
 	$templates_array = array();
