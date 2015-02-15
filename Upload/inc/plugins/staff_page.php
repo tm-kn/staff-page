@@ -1,6 +1,6 @@
 <?php
 /**
- * Staff Page v0.3.1 (alpha)
+ * Staff Page v0.3.3 (alpha)
  * Author: mrnu <mrnuu@icloud.com>
  *
  * Website: https://github.com/mrnu
@@ -47,7 +47,7 @@ function staff_page_info()
 		'website'		=> 'http://github.com/mrnu/staff-page',
 		'author'		=> 'mrnu',
 		'authorsite'	=> 'http://github.com/mrnu',
-		'version'		=> '0.3.1',
+		'version'		=> '0.3.3',
 		'compatibility' => '18*'
 	);
 }
