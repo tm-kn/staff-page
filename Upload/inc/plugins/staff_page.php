@@ -893,6 +893,9 @@ function staff_page_uninstall()
 		$db->drop_column("usergroups", "canseestaffpage");
 	}
 
+	// Update the cache
+	$cache->update_usergroups();
+
 	// Delete templates
 	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
 
@@ -966,7 +969,7 @@ function staff_page_install()
 		$db->add_column('usergroups', 'canseestaffpage', 'tinyint(1) NOT NULL default \'1\'');
 	}
 
-	// Update the caches
+	// Update the cache
 	$cache->update_usergroups();
 
 	// Install templates
