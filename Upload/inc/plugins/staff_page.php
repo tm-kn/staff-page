@@ -873,7 +873,7 @@ function staff_page_is_installed()
  */
 function staff_page_uninstall()
 {
-	global $db;
+	global $db, $cache;
 
 	// Remove settings
 	$db->delete_query('settings', "name IN ('staff_page_maxavatarsize', 'staff_page_showteam_redirect')");
