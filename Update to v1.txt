@@ -1,1 +1,1 @@
-If you update this plugin from previous versions, simply deactivate and activate plugin to make changes in templates and database structure. Your data of members and groups won't be affected.
+If you update this plugin from previous versions, first replace plugin files. Then deactivate and activate plugin to make changes in templates and database structure. Your data of members and groups won't be affected.
