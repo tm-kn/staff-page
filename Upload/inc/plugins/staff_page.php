@@ -494,7 +494,8 @@ function staff_page_admin()
 				{
 					$insert_array = array(
 						'name'       => $db->escape_string($mybb->input['name']),
-						'description' => $db->escape_string($mybb->input['description'])
+						'description' => $db->escape_string($mybb->input['description']),
+						'list_order'	=>	intval($mybb->input['list_order'])
 					);
 
 					$db->insert_query('staff_page_groups', $insert_array);
@@ -513,6 +514,7 @@ function staff_page_admin()
 			$form = new Form('index.php?module=config-staff_page&amp;action=add_group', 'post', 'add');
 			$form_container = new FormContainer($lang->add_group);
 			$form_container->output_row($lang->name, '', $form->generate_text_box('name', $mybb->input['name']));
+			$form_container->output_row($lang->order, '', $form->generate_text_box('list_order', $mybb->input['list_order']));
 			$form_container->output_row($lang->description, '', $form->generate_text_area('description', $mybb->input['description']));
 			$form_container->end();
 
@@ -581,7 +583,8 @@ function staff_page_admin()
 				{
 					$insert_array = array(
 						'user_id'	=>	$user['uid'],
-						'group_id'	=>	intval($mybb->input['group_id'])
+						'group_id'	=>	intval($mybb->input['group_id']),
+						'list_order'	=>	intval($mybb->input['list_order'])
 					);
 
 					$db->insert_query('staff_page_members', $insert_array);
@@ -607,6 +610,7 @@ function staff_page_admin()
 			$form = new Form('index.php?module=config-staff_page&amp;action=add_member', 'post', 'add');
 			$form_container = new FormContainer($lang->add_member);
 			$form_container->output_row($lang->name, '', $form->generate_text_box('name', $mybb->input['name']));
+			$form_container->output_row($lang->order, '', $form->generate_text_box('list_order', $mybb->input['list_order']));
 			$form_container->output_row($lang->group, '', $form->generate_select_box('group_id', $groups_select, $mybb->input['group_id'], array('id' => 'group_id')));
 			$form_container->end();
 
