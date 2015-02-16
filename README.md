@@ -1,6 +1,6 @@
 # Staff Page
 
-***[Download](http://community.mybb.com/mods.php?action=download&pid=395)*** *| [Issues](https://github.com/mrnu/staff-page/issues) | [Mybb Mods Page](http://community.mybb.com/mods.php?action=view&pid=395)  | [MyBB Community Forum Thread](http://community.mybb.com/thread-167125.html)*
+***[Download](http://github.com/mrnu/staff-page/releases/latest)*** *| [Issues](http://github.com/mrnu/staff-page/issues) | [MyBB Mods page](http://community.mybb.com/mods.php?action=view&pid=395)  | [MyBB Community Forums thread](http://community.mybb.com/thread-167125.html)*
 
 It is a MyBB plugin, which adds a manageable page with list of staff. It creates a list of staff and allows administrators to display members and group them as they like. The page can display description of groups and members set in ACP. Groups displayed on the page are independent from the forum's users groups. In other words, this plugin gives possibility to create a small staff directory, without using MyBB's groups.
 
