@@ -972,7 +972,8 @@ function staff_page_install()
 	rebuild_settings();
 
 	// Add group permissions
-	if(!$db->field_exists('canseestaffpage', 'usergroups')) {
+	if(!$db->field_exists('canseestaffpage', 'usergroups'))
+	{
 		$db->add_column('usergroups', 'canseestaffpage', 'tinyint(1) NOT NULL default \'1\'');
 	}
 
