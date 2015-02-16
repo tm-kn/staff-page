@@ -149,6 +149,7 @@ function display_staff_page()
 					$user = get_user($member['user_id']);
 					$user['formatted_name'] = format_name($user['username'], $user['usergroup'], $user['displaygroup']);
 					$user['profilelink'] = build_profile_link($user['formatted_name'], $user['uid']);
+					$user['profileurl'] = get_profile_link($user['uid']);
 
 					// Parse member's description
 					$description = $parser->parse_message($member['description'], $parser_options);
@@ -906,9 +907,9 @@ function staff_page_uninstall()
 	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
 
 	// Delete DB schema
-	if($db->table_exists('staff_page_groups'))
+	if($db->table_exists('staff_page_members'))
 	{
-		$db->drop_table('staff_page_groups');
+		$db->drop_table('staff_page_members');
 	}
 
 	if($db->table_exists('staff_page_groups'))
@@ -1032,7 +1033,9 @@ function staff_page_install()
 	// staff_page_member_row
 	$template ='<tr>
   <td class="{$bgcolor}" align="center" width="1%">
-    {$user[\'avatar\']}
+    <a href="{$user[\'profileurl\']}">
+		{$user[\'avatar\']}
+	</a>
   </td>
   <td class="{$bgcolor}">
     <div class="largetext">{$user[\'profilelink\']}</div>
