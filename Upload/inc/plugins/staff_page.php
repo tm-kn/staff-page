@@ -931,7 +931,7 @@ function staff_page_install()
 	// Add settings
 	$setting_group = array(
 		'name' => 'staff_page',
-		'title' => $lang->staff_page_settings,
+		'title' => $db->escape_string($lang->staff_page_settings),
 		'description' => '',
 		'disporder' => 99,
 		'isdefault' => 0
@@ -942,16 +942,16 @@ function staff_page_install()
 	$setting_array = array(
 
 		'staff_page_maxavatarsize' => array(
-			'title' => $lang->avatar_size,
-			'description' => $lang->avatar_size_description,
+			'title' => $db->escape_string($lang->avatar_size),
+			'description' => $db->escape_string($lang->avatar_size_description),
 			'optionscode' => 'text',
 			'value' => '100x100',
 			'disporder' => 1
 		),
 
 		'staff_page_showteam_redirect' => array(
-			'title' => $lang->enable_showteam_redirection,
-			'description' => $lang->enable_showteam_redirection_description,
+			'title' => $db->escape_string($lang->enable_showteam_redirection),
+			'description' => $db->escape_string($lang->enable_showteam_redirection_description),
 			'optionscode' => 'yesno',
 			'value' => 1,
 			'disporder' => 2
