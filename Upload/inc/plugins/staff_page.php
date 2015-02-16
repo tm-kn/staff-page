@@ -902,18 +902,6 @@ function staff_page_uninstall()
 	// Update the cache
 	$cache->update_usergroups();
 
-	// Delete templates
-	$templates = array(
-		'staff_page',
-		'staff_page_group_row',
-		'staff_page_member_row',
-		'staff_page_no_groups',
-		'staff_page_no_members',
-		'staff_page_user_avatar'
-	);
-
-	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
-
 	// Delete DB schema
 	if($db->table_exists('staff_page_members'))
 	{
@@ -987,6 +975,77 @@ function staff_page_install()
 	// Update the cache
 	$cache->update_usergroups();
 
+	// Create DB schema
+	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_members (
+					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+					`user_id` int(11) DEFAULT NULL,
+					`group_id` int(11) DEFAULT NULL,
+					`list_order` tinyint(127) NOT NULL DEFAULT '0',
+					`description` text,
+					PRIMARY KEY (`id`)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
+
+	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_groups (
+					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+					`name` varchar(256) DEFAULT NULL,
+					`list_order` tinyint(127) NOT NULL DEFAULT '0',
+					`description` varchar(256) DEFAULT NULL,
+					PRIMARY KEY (`id`)
+		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
+}
+
+/**
+ * Deactivation of plugin.
+ *
+ */
+function staff_page_deactivate()
+{
+	global $db;
+
+	// Delete cache
+	$db->delete_query('datacache', 'title = \'staff_page_groups\'');
+
+	// Delete templates
+	$templates = array(
+		'staff_page',
+		'staff_page_group_row',
+		'staff_page_member_row',
+		'staff_page_no_groups',
+		'staff_page_no_members',
+		'staff_page_user_avatar'
+	);
+
+	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
+
+}
+
+/**
+ * Activation of plugin.
+ *
+ */
+function staff_page_activate()
+{
+	global $db;
+
+	// Update schema from 0.3.x to 1.0
+	if($db->field_exists('order', 'staff_page_groups'))
+	{
+		$db->drop_column('staff_page_groups', '`order`');
+	}
+
+	if(!$db->field_exists('list_order', 'staff_page_groups'))
+	{
+		$db->add_column('staff_page_groups', 'list_order', 'tinyint(127) NOT NULL default \'0\'');
+	}
+
+	if(!$db->field_exists('list_order', 'staff_page_members'))
+	{
+		$db->add_column('staff_page_members', 'list_order', 'tinyint(127) NOT NULL default \'0\'');
+	}
+
+	// Recache groups
+	recache_staff_groups();
+
 	// Install templates
 	$templates_array = array();
 
@@ -1017,16 +1076,16 @@ function staff_page_install()
 
 	// staff_page_group_row
 	$template = '<table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder">
-    <tr>
-        <td class="thead" colspan="2">
-          <strong>{$group[\'name\']}</strong>
-          <br />
-          <div class="smalltext">
-           		{$group[\'description\']}
-          </div>
-        </td>
-    </tr>
-    {$members_rows}
+	<tr>
+		<td class="thead" colspan="2">
+		<strong>{$group[\'name\']}</strong>
+		<br />
+		<div class="smalltext">
+				{$group[\'description\']}
+		</div>
+		</td>
+	</tr>
+	{$members_rows}
 </table>
 <br />';
 	$templates_array[] = array(
@@ -1040,16 +1099,16 @@ function staff_page_install()
 
 	// staff_page_member_row
 	$template ='<tr>
-  <td class="{$bgcolor}" align="center" width="1%">
-    <a href="{$member[\'profileurl\']}">
+<td class="{$bgcolor}" align="center" width="1%">
+	<a href="{$member[\'profileurl\']}">
 		{$member[\'avatar\']}
 	</a>
-  </td>
-  <td class="{$bgcolor}">
-    <div class="largetext">{$member[\'profilelink\']}</div>
-    <div class="smalltext">{$description}</div>
-    <div class="postbit_buttons">{$emailcode}{$pmcode}</div>
-  </td>
+</td>
+<td class="{$bgcolor}">
+	<div class="largetext">{$member[\'profilelink\']}</div>
+	<div class="smalltext">{$description}</div>
+	<div class="postbit_buttons">{$emailcode}{$pmcode}</div>
+</td>
 </tr>';
 
 	$templates_array[] = array(
@@ -1078,7 +1137,7 @@ function staff_page_install()
 	// staff_page_no_members
 	$template = '<tr>
 	<td class="trow1">
-    	{$lang->no_members}
+		{$lang->no_members}
 	</td>
 </tr>';
 
@@ -1107,46 +1166,4 @@ function staff_page_install()
 	{
 		$db->insert_query('templates', $row);
 	}
-
-	// Create DB schema
-	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_members (
-					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`user_id` int(11) DEFAULT NULL,
-					`group_id` int(11) DEFAULT NULL,
-					`list_order` tinyint(127) NOT NULL DEFAULT '0',
-					`description` text,
-					PRIMARY KEY (`id`)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
-
-	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_groups (
-					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-					`name` varchar(256) DEFAULT NULL,
-					`list_order` tinyint(127) NOT NULL DEFAULT '0',
-					`description` varchar(256) DEFAULT NULL,
-					PRIMARY KEY (`id`)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
-}
-
-/**
- * Deactivation of plugin.
- *
- */
-function staff_page_deactivate()
-{
-	global $db;
-
-	// Delete cache
-	$db->delete_query('datacache', 'title = \'staff_page_groups\'');
-}
-
-/**
- * Activation of plugin.
- *
- */
-function staff_page_activate()
-{
-	global $db;
-
-	// Recache groups
-	recache_staff_groups();
 }
