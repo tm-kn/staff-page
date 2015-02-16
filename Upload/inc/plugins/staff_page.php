@@ -1,6 +1,6 @@
 <?php
 /**
- * Staff Page v0.3.3 (alpha)
+ * Staff Page v1.0
  * Author: mrnu <mrnuu@icloud.com>
  *
  * Website: https://github.com/mrnu
@@ -47,7 +47,7 @@ function staff_page_info()
 		'website'		=> 'http://github.com/mrnu/staff-page',
 		'author'		=> 'mrnu',
 		'authorsite'	=> 'http://github.com/mrnu',
-		'version'		=> '0.3.3',
+		'version'		=> '1.0',
 		'compatibility' => '18*',
 		'codename'      => 'staff_page'
 	);
@@ -145,11 +145,10 @@ function display_staff_page()
 
 				foreach($members[$group['id']] as $member)
 				{
-					// Get MyBB user details and format it
-					$user = get_user($member['user_id']);
-					$user['formatted_name'] = format_name($user['username'], $user['usergroup'], $user['displaygroup']);
-					$user['profilelink'] = build_profile_link($user['formatted_name'], $user['uid']);
-					$user['profileurl'] = get_profile_link($user['uid']);
+					// Format MyBB user's details
+					$member['formatted_name'] = format_name($member['username'], $member['usergroup'], $member['displaygroup']);
+					$member['profilelink'] = build_profile_link($member['formatted_name'], $member['user_id']);
+					$member['profileurl'] = get_profile_link($member['user_id']);
 
 					// Parse member's description
 					$description = $parser->parse_message($member['description'], $parser_options);
@@ -157,24 +156,24 @@ function display_staff_page()
 					// Show "Send email" link
 					$emailcode = '';
 
-					if($user['hideemail'] != 1)
+					if($member['hideemail'] != 1)
 					{
-						$post['uid'] = $user['uid'];
+						$post['uid'] = $member['user_id'];
 						eval("\$emailcode = \"".$templates->get("postbit_email")."\";");
 					}
 
 					// Show "Send PM" link
 					$pmcode = '';
 
-					if($user['receivepms'] != 0 && $mybb->settings['enablepms'] != 0 && my_strpos(','.$user['ignorelist'].',', ','.$mybb->user['uid'].',') === false)
+					if($member['receivepms'] != 0 && $mybb->settings['enablepms'] != 0 && my_strpos(','.$member['ignorelist'].',', ','.$mybb->user['uid'].',') === false)
 					{
-						$post['uid'] = $user['uid'];
+						$post['uid'] = $member['user_id'];
 						eval("\$pmcode = \"".$templates->get("postbit_pm")."\";");
 					}
 
 					// Show avatar
-					$useravatar = format_avatar(htmlspecialchars_uni($user['avatar']), $user['avatardimensions'], my_strtolower($mybb->settings['staff_page_maxavatarsize']));
-					eval("\$user['avatar'] = \"".$templates->get("staff_page_user_avatar")."\";");
+					$useravatar = format_avatar(htmlspecialchars_uni($member['avatar']), $member['avatardimensions'], my_strtolower($mybb->settings['staff_page_maxavatarsize']));
+					eval("\$member['avatar'] = \"".$templates->get("staff_page_user_avatar")."\";");
 
 					// Alternate rows.
 					$bgcolor = alt_trow($reset);
@@ -223,14 +222,22 @@ function get_staff_members($group_id = 0)
 
 	if($group_id)
 	{
-		$where_clause = 'group_id = ' . intval($group_id);
+		$where_clause = 'm.group_id = ' . intval($group_id);
 	}
 	else
 	{
 		$where_clause = '1';
 	}
 
-	$query = $db->simple_select('staff_page_members', '*', $where_clause, array('order_by'	=>	'user_id', 'order_dir'	=>	'ASC'));
+	//$query = $db->simple_select('staff_page_members', '*', $where_clause, array('order_by'	=>	'user_id', 'order_dir'	=>	'ASC'));
+
+	$query = $db->query('
+		SELECT m.*, u.username, u.uid, u.usergroup, u.displaygroup, u.avatar, u.avatardimensions, u.hideemail, u.receivepms, u.ignorelist
+		FROM '.TABLE_PREFIX.'staff_page_members m
+		LEFT JOIN '.TABLE_PREFIX.'users u ON(m.user_id = u.uid)
+		WHERE '.$where_clause.'
+		ORDER BY m.list_order ASC, u.username ASC
+	');
 
 	if($db->num_rows($query))
 	{
@@ -251,7 +258,7 @@ function recache_staff_groups()
 {
 	global $db, $cache;
 
-	$query = $db->simple_select('staff_page_groups', '*', '1', array('order_by' => '`order`', 'order_dir' => 'asc'));
+	$query = $db->simple_select('staff_page_groups', '*', '1', array('order_by' => 'list_order', 'order_dir' => 'asc'));
 
 	$groups = array();
 
@@ -438,7 +445,7 @@ function staff_page_admin()
 				foreach($groups as $group)
 				{
 					$table->construct_cell('<div class="largetext"><strong>'.$group['name'].'</strong></div><div class="smalltext">'.$group['description'].'</div>');
-					$table->construct_cell($group['order']);
+					$table->construct_cell($group['list_order']);
 					$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=edit_group&amp;uid={$group['id']}\">{$lang->edit}</a>");
 					$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=delete_group&amp;uid={$group['id']}\">{$lang->delete}</a>");
 					$table->construct_row();
@@ -447,10 +454,10 @@ function staff_page_admin()
 					{
 						foreach($members[$group['id']] as $member)
 						{
-							$user = get_user($member['user_id']);
-							$user['formatted_name'] = format_name($user['username'], $user['usergroup'], $user['displaygroup']);
+							$member['formatted_name'] = format_name($member['username'], $member['usergroup'], $member['displaygroup']);
 
-							$table->construct_cell('<div style="padding-left: 40px;" class="largetext">'.$user['formatted_name'].'</div><div class="smalltext" style="padding-left: 50px;">'.$member['description'].'</div>', array('colspan'  => 2));
+							$table->construct_cell('<div style="padding-left: 40px;" class="largetext">'.$member['formatted_name'].'</div><div class="smalltext" style="padding-left: 50px;">'.$member['description'].'</div>');
+							$table->construct_cell($member['list_order']);
 							$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=edit_member&amp;uid={$member['id']}\">{$lang->edit}</a>");
 							$table->construct_cell("<a href=\"index.php?module=config-staff_page&amp;action=delete_member&amp;uid={$member['id']}\">{$lang->delete}</a>");
 							$table->construct_row();
@@ -722,7 +729,8 @@ function staff_page_admin()
 				{
 					$update_array = array(
 						'description'	=>	$db->escape_string($mybb->input['description']),
-						'group_id'	=>	intval($mybb->input['group_id'])
+						'group_id'	=>	intval($mybb->input['group_id']),
+						'list_order'	=>	intval($mybb->input['list_order'])
 					);
 
 					$db->update_query('staff_page_members', $update_array, 'id=' . $member['id']);
@@ -763,6 +771,7 @@ function staff_page_admin()
 
 			$form_container = new FormContainer($lang->edit_member);
 			$form_container->output_row($lang->name, '', $user['username']);
+			$form_container->output_row($lang->order, '', $form->generate_text_box('list_order', $mybb->input['list_order']));
 			$form_container->output_row($lang->description, '', $form->generate_text_area('description', $mybb->input['description']));
 			$form_container->output_row($lang->group, '', $form->generate_select_box('group_id', $groups_select, $mybb->input['group_id'], array('id' => 'group_id')));
 			$form_container->end();
@@ -801,7 +810,7 @@ function staff_page_admin()
 				{
 					$update_array = array(
 						'description'	=>	$db->escape_string($mybb->input['description']),
-						'order'	=>	intval($mybb->input['orderr']),
+						'list_order'	=>	intval($mybb->input['list_order']),
 						'name'	=>	$db->escape_string($mybb->input['name'])
 					);
 
@@ -827,7 +836,6 @@ function staff_page_admin()
 			else
 			{
 				$mybb->input = $group;
-				$mybb->input['orderr'] = $group['order'];
 			}
 
 			// Generate a form
@@ -837,7 +845,7 @@ function staff_page_admin()
 			$form_container = new FormContainer($lang->edit_group);
 			$form_container->output_row($lang->name, '', $form->generate_text_box('name', $mybb->input['name']));
 			$form_container->output_row($lang->description, '', $form->generate_text_area('description', $mybb->input['description']));
-			$form_container->output_row($lang->order, '', $form->generate_text_box('orderr', $mybb->input['orderr']));
+			$form_container->output_row($lang->order, '', $form->generate_text_box('list_order', $mybb->input['list_order']));
 			$form_container->end();
 
 			$buttons[] = $form->generate_submit_button($lang->save);
@@ -885,6 +893,15 @@ function staff_page_uninstall()
 	// Delete admin permissions
 	change_admin_permission('config', 'staff_page', 0);
 
+	// Remove group permissions
+	if($db->field_exists('canseestaffpage', 'usergroups'))
+	{
+		$db->drop_column('usergroups', 'canseestaffpage');
+	}
+
+	// Update the cache
+	$cache->update_usergroups();
+
 	// Delete templates
 	$templates = array(
 		'staff_page',
@@ -895,15 +912,6 @@ function staff_page_uninstall()
 		'staff_page_user_avatar'
 	);
 
-	// Remove group permissions
-	if($db->field_exists('canseestaffpage', 'usergroups')) {
-		$db->drop_column("usergroups", "canseestaffpage");
-	}
-
-	// Update the cache
-	$cache->update_usergroups();
-
-	// Delete templates
 	$db->delete_query('templates', 'title IN(\'' . implode('\',\'', $templates) . '\')');
 
 	// Delete DB schema
@@ -1033,12 +1041,12 @@ function staff_page_install()
 	// staff_page_member_row
 	$template ='<tr>
   <td class="{$bgcolor}" align="center" width="1%">
-    <a href="{$user[\'profileurl\']}">
-		{$user[\'avatar\']}
+    <a href="{$member[\'profileurl\']}">
+		{$member[\'avatar\']}
 	</a>
   </td>
   <td class="{$bgcolor}">
-    <div class="largetext">{$user[\'profilelink\']}</div>
+    <div class="largetext">{$member[\'profilelink\']}</div>
     <div class="smalltext">{$description}</div>
     <div class="postbit_buttons">{$emailcode}{$pmcode}</div>
   </td>
@@ -1105,6 +1113,7 @@ function staff_page_install()
 					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`user_id` int(11) DEFAULT NULL,
 					`group_id` int(11) DEFAULT NULL,
+					`list_order` tinyint(127) NOT NULL DEFAULT '0',
 					`description` text,
 					PRIMARY KEY (`id`)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
@@ -1112,7 +1121,7 @@ function staff_page_install()
 	$db->query("CREATE TABLE IF NOT EXISTS " . TABLE_PREFIX . "staff_page_groups (
 					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`name` varchar(256) DEFAULT NULL,
-					`order` tinyint(127) NOT NULL DEFAULT '0',
+					`list_order` tinyint(127) NOT NULL DEFAULT '0',
 					`description` varchar(256) DEFAULT NULL,
 					PRIMARY KEY (`id`)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
