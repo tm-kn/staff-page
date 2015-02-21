@@ -1123,7 +1123,7 @@ function staff_page_activate()
 	</a>
 </td>
 <td class="{$bgcolor}">
-	<div class="largetext">{$member[\'profilelink\']}</div>
+	<div class="largetext"><img src="{$theme[\'imgdir\']}/buddy_{$status}.png" title="{$lang->$status}" alt="{$lang->$status}" style="vertical-align: middle;" />{$member[\'profilelink\']}</div>
 	<div class="smalltext">{$description}</div>
 	<div class="postbit_buttons">{$emailcode}{$pmcode}</div>
 </td>
