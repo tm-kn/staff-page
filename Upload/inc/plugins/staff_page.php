@@ -245,7 +245,7 @@ function get_staff_members($group_id = 0)
 	//$query = $db->simple_select('staff_page_members', '*', $where_clause, array('order_by'	=>	'user_id', 'order_dir'	=>	'ASC'));
 
 	$query = $db->query('
-		SELECT m.*, u.username, u.uid, u.usergroup, u.displaygroup, u.avatar, u.avatardimensions, u.hideemail, u.receivepms, u.ignorelist
+		SELECT m.*, u.username, u.uid, u.usergroup, u.displaygroup, u.avatar, u.avatardimensions, u.hideemail, u.receivepms, u.ignorelist, u.lastactive, u.invisible, u.canviewwolinvis, u.lastvisit
 		FROM '.TABLE_PREFIX.'staff_page_members m
 		LEFT JOIN '.TABLE_PREFIX.'users u ON(m.user_id = u.uid)
 		WHERE '.$where_clause.'
