@@ -118,6 +118,9 @@ function display_staff_page()
 
 	if(count($groups))
 	{
+		// Cut time for online status
+		$timecut = TIME_NOW - $mybb->settings['wolcutoff'];
+
 		// Output all groups
 		$groups_rows = '';
 
@@ -149,6 +152,16 @@ function display_staff_page()
 					$member['formatted_name'] = format_name($member['username'], $member['usergroup'], $member['displaygroup']);
 					$member['profilelink'] = build_profile_link($member['formatted_name'], $member['user_id']);
 					$member['profileurl'] = get_profile_link($member['user_id']);
+
+					// For the online image
+					if($member['lastactive'] > $timecut && ($member['invisible'] == 0 || $mybb->usergroup['canviewwolinvis'] == 1) && $member['lastvisit'] != $member['lastactive'])
+					{
+						$status = "online";
+					}
+					else
+					{
+						$status = "offline";
+					}
 
 					// Parse member's description
 					$description = $parser->parse_message($member['description'], $parser_options);
