@@ -24,7 +24,7 @@ You can disallow users from accessing the staff page by setting it in the groups
 In the board settings the plugin gives administrators option to set avatar size displayed on the staff page and the redirection from `showteam.php` can be turned off.
 
 ## Author
-* [tomaszknapik](http://github.com/tomaszknapik) <<tomaszknapik@icloud.com>>
+* [tomaszknapik](http://github.com/tomaszknapik) <<tmszknapik@icloud.com>>
 
 ## Information
 Project is published under the GPL v3 license.
