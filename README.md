@@ -1,6 +1,6 @@
 # Staff Page
 
-***[Download](http://github.com/tomaszknapik/staff-page/releases/latest)*** *| [Issues](http://github.com/tomaszknapik/staff-page/issues) | [MyBB Mods page](http://community.mybb.com/mods.php?action=view&pid=395)  | [MyBB Community Forums thread](http://community.mybb.com/thread-167125.html)*
+***[Download](http://github.com/tmkn8/staff-page/releases/latest)*** *| [Issues](http://github.com/tmkn8/staff-page/issues) | [MyBB Mods page](http://community.mybb.com/mods.php?action=view&pid=395)  | [MyBB Community Forums thread](http://community.mybb.com/thread-167125.html)*
 
 It is a MyBB plugin, which adds a manageable page with list of staff. It creates a list of staff and allows administrators to display members and group them as they like. The page can display description of groups and members set in ACP. Groups displayed on the page are independent from the forum's users groups. In other words, this plugin gives possibility to create a small staff directory, without using MyBB's groups.
 
@@ -24,7 +24,7 @@ You can disallow users from accessing the staff page by setting it in the groups
 In the board settings the plugin gives administrators option to set avatar size displayed on the staff page and the redirection from `showteam.php` can be turned off.
 
 ## Author
-* [tomaszknapik](http://github.com/tomaszknapik) <<tmszknapik@icloud.com>>
+* [tmkn8](http://github.com/tmkn8) <<tmkn8@protonmail.ch>>
 
 ## Information
 Project is published under the GPL v3 license.
@@ -33,4 +33,4 @@ Project is published under the GPL v3 license.
 ![Screenshot from the ACP configuration page](Screenshots/ACP 02.png)
 
 ## Reporting issues
-All issues, suggestions, ideas and feedback can be reported on the [issues page](https://github.com/tomaszknapik/staff-page/issues) of this repository. Feel free to do so. :stuck_out_tongue_winking_eye:
+All issues, suggestions, ideas and feedback can be reported on the [issues page](https://github.com/tmkn8/staff-page/issues) of this repository. Feel free to do so. :stuck_out_tongue_winking_eye:
